@@ -1,6 +1,6 @@
 # Eidos - CUJ1
 
-> Assuming authN to any EKS cluster with 1+ H100 node (meeting recipe constraints)
+> Assuming authN to any EKS cluster with 2+ H100 node (meeting recipe constraints)
 
 ## Gen Recipe
 
@@ -22,7 +22,7 @@ eidos validate \
   --output recipe.yaml
 ```
 
-## Bundle
+## Generate Bundle
 
 > Updates selectors and tolerations as needed
 
@@ -34,7 +34,7 @@ eidos bundle \
   --accelerated-node-toleration nvidia.com/gpu=present:NoSchedule
 ```
 
-## Install 
+## Install Bundle into the Cluster
 
 ```shell
 cd ./bundle
@@ -42,7 +42,7 @@ helm dependency update
 helm install eidos-stack . -f values.yaml
 ```
 
-## Validate
+## Validate Cluster 
 
 ```shell
 eidos validate \
@@ -52,4 +52,17 @@ eidos validate \
   --output recipe.yaml
 ```
 
-> Success == PASS
+## Run Job
+
+```shell
+kubectl apply -f https://raw.githubusercontent.com/kubeflow/training-operator/master/examples/pytorch/simple.yaml
+kubectl get pytorchjobs
+kubectl get pods -l training.kubeflow.org/job-name=pytorch-simple
+kubectl logs -f pytorch-simple-master-0
+```
+
+## Success
+
+Job Success + Fabric Bandwidth Range
+
+> Synthetic workload, perf checks in CUJ2
