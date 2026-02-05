@@ -1,6 +1,6 @@
 # Eidos - CUJ1
 
-> Assuming authN to any EKS cluster with 2+ H100 node (meeting recipe constraints)
+> Assuming user is already authenticated to an EKS cluster with 2+ H100 node
 
 ## Gen Recipe
 
@@ -22,9 +22,11 @@ eidos validate \
   --output recipe.yaml
 ```
 
+> Assuming cluster meets recipe constraints
+
 ## Generate Bundle
 
-> Updates selectors and tolerations as needed
+> Assuming user updates selectors and tolerations as needed
 
 ```shell
 eidos bundle \
