@@ -16,7 +16,7 @@ Demo:
 4. **Merging strategy** - Components, constraints, and values are merged with overlay precedence
 5. **Computing deployment order** - Topological sort of components based on dependency references
 
-> Terminology (see [glossary](https://github.com/NVIDIA/eidos/blob/main/docs/OVERVIEW.md))
+> Terminology (see [glossary](https://github.com/NVIDIA/eidos/blob/main/docs/README.md))
 
 ## Recipe Data (Design time == files in git)
 
