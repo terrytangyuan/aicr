@@ -62,7 +62,7 @@ TODO: Add simple Dynamo workload
 
 ## Success
 
-1) Job success + Fabric bandwidth within range
+1) Job success
 2) Validation report correctly reflects the level of CNCF Conformance
 
 > Synthetic workload, perf checks beyond the basic fabric validation is out of scope here.
