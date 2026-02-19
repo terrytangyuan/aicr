@@ -24,7 +24,8 @@ Eidos (Eidos) provides supply chain security artifacts:
 Get latest release tag:
 
 ```shell
-TAG=$(curl -s https://api.github.com/repos/NVIDIA/eidos/releases/latest | jq -r '.tag_name')
+TAG=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+  https://api.github.com/repos/NVIDIA/eidos/releases/latest | jq -r '.tag_name')
 echo "Using tag: $TAG"
 ```
 Resolve tag to immutable digest:
@@ -80,12 +81,17 @@ Get latest release tag:
 
 ```shell
 VERSION=${TAG#v}  # Remove 'v' prefix for filenames
-echo "Using version: $VERSION"
+echo "Using version: $VERSION ($TAG)"
 ```
 
 Download SBOM:
+
 ```shell
-curl -Ls https://github.com/NVIDIA/eidos/releases/download/${TAG}/eidos_${VERSION}_linux_arm64.sbom.json -o sbom.json
+gh release download $TAG \
+    --repo NVIDIA/eidos \
+    --pattern "eidos_${VERSION}_linux_arm64.sbom.json" \
+    --clobber \
+    --output sbom.json
 ```
 
 View SBOM
