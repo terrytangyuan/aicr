@@ -597,22 +597,22 @@ test_validate_multiphase() {
     return 0
   fi
 
-  # Test 1: Readiness phase (default)
-  msg "--- Test: Validate with --phase readiness ---"
-  echo -e "${DIM}  \$ aicr validate --phase readiness${NC}"
-  local readiness_result="${validate_dir}/validation-readiness.yaml"
-  local readiness_output
-  readiness_output=$("${AICR_BIN}" validate \
+  # Test 1: Deployment phase (default)
+  msg "--- Test: Validate with --phase deployment ---"
+  echo -e "${DIM}  \$ aicr validate --phase deployment${NC}"
+  local deployment_result="${validate_dir}/validation-deployment.json"
+  local deployment_output
+  deployment_output=$("${AICR_BIN}" validate \
     --recipe "$recipe_file" \
     --snapshot "cm://${SNAPSHOT_NAMESPACE}/${SNAPSHOT_CM}" \
-    --phase readiness \
-    --output "$readiness_result" 2>&1) || true
+    --phase deployment \
+    --output "$deployment_result" 2>&1) || true
 
-  if echo "$readiness_output" | grep -q "readiness"; then
-    detail "Readiness phase: PASS"
-    pass "validate/phase-readiness"
+  if echo "$deployment_output" | grep -q "deployment"; then
+    detail "Deployment phase: PASS"
+    pass "validate/phase-deployment"
   else
-    fail "validate/phase-readiness" "Readiness phase not found in output"
+    fail "validate/phase-deployment" "Deployment phase not found in output"
   fi
 
   # Test 2: Deployment phase
@@ -650,7 +650,7 @@ test_validate_multiphase() {
   # Test 4: All phases
   msg "--- Test: Validate with --phase all ---"
   echo -e "${DIM}  \$ aicr validate --phase all${NC}"
-  local all_result="${validate_dir}/validation-all.yaml"
+  local all_result="${validate_dir}/validation-all.json"
   local all_output
   all_output=$("${AICR_BIN}" validate \
     --recipe "$recipe_file" \
@@ -660,12 +660,11 @@ test_validate_multiphase() {
 
   # Check that all phases are present in the output
   local phases_found=0
-  echo "$all_output" | grep -q "readiness" && ((phases_found++)) || true
   echo "$all_output" | grep -q "deployment" && ((phases_found++)) || true
   echo "$all_output" | grep -q "performance" && ((phases_found++)) || true
   echo "$all_output" | grep -q "conformance" && ((phases_found++)) || true
 
-  if [ $phases_found -ge 3 ]; then
+  if [ $phases_found -ge 2 ]; then
     detail "All phases: PASS (found $phases_found phases)"
     pass "validate/phase-all"
   else
@@ -674,15 +673,15 @@ test_validate_multiphase() {
 
   # Test 5: Verify phase result structure
   if [ -f "$all_result" ]; then
-    msg "--- Test: Verify phase result structure ---"
-    echo -e "${DIM}  \$ yq '.phases' validation-all.yaml${NC}"
+    msg "--- Test: Verify CTRF result structure ---"
+    echo -e "${DIM}  \$ grep reportFormat validation-all.json${NC}"
 
-    # Check if phases field exists
-    if yq '.phases' "$all_result" | grep -q "readiness"; then
-      detail "Phase result structure: PASS"
+    # Check if CTRF reportFormat field exists
+    if grep -q 'reportformat: CTRF' "$all_result" || grep -q '"reportFormat"' "$all_result"; then
+      detail "CTRF result structure: PASS"
       pass "validate/result-structure"
     else
-      fail "validate/result-structure" "phases field not found in result"
+      fail "validate/result-structure" "reportFormat field not found in CTRF result"
     fi
   fi
 }
@@ -761,6 +760,8 @@ componentRefs:
     enabled: true
 validation:
   deployment:
+    checks:
+      - gpu-operator-version
     constraints:
       - name: Deployment.gpu-operator.version
         value: ">= v24.6.0"
@@ -789,22 +790,15 @@ RECIPE
     detail "Validation output file NOT created: $deployment_result"
   fi
 
+  # CTRF output: check for gpu-operator-version validator result
   if [ -f "$deployment_result" ] && \
-     grep -q "Deployment.gpu-operator.version" "$deployment_result"; then
-    # Check constraint result using CONSTRAINT_RESULT line which has explicit passed=true/false
-    if grep -q "CONSTRAINT_RESULT:.*Deployment.gpu-operator.version.*passed=true" "$deployment_result"; then
+     grep -q "gpu-operator-version" "$deployment_result"; then
+    if grep -A1 "name: gpu-operator-version" "$deployment_result" | grep -q "status: passed"; then
       detail "GPU operator version constraint: PASS (v24.6.0 >= v24.6.0)"
       pass "validate/deployment-constraint-pass"
-    elif grep -q "CONSTRAINT_RESULT:.*Deployment.gpu-operator.version.*passed=false" "$deployment_result"; then
-      fail "validate/deployment-constraint-pass" "Constraint evaluated but failed"
-    elif grep -q "summary:" "$deployment_result" && grep -q "status: pass" "$deployment_result"; then
-      # Fallback: check summary status if CONSTRAINT_RESULT format changes
-      detail "GPU operator version constraint: PASS (from summary status)"
-      pass "validate/deployment-constraint-pass"
     else
-      # Debug: Print the actual constraint section from the YAML
-      detail "Constraint found but status unclear. Showing constraint section:"
-      grep -A10 "Deployment.gpu-operator.version" "$deployment_result" | sed 's/^/    /' || true
+      detail "Constraint found but status unclear. Showing report:"
+      grep -A5 "gpu-operator-version" "$deployment_result" | sed 's/^/    /' || true
       fail "validate/deployment-constraint-pass" "Constraint status unclear"
     fi
   else
@@ -824,6 +818,8 @@ componentRefs:
     enabled: true
 validation:
   deployment:
+    checks:
+      - gpu-operator-version
     constraints:
       - name: Deployment.gpu-operator.version
         value: ">= v25.0.0"
@@ -838,16 +834,11 @@ RECIPE
     --phase deployment \
     --output "$deployment_fail_result" 2>&1) || true
 
-  # Check the output file for constraint results
+  # CTRF output: check for gpu-operator-version validator result (should fail)
   if [ -f "$deployment_fail_result" ] && \
-     grep -q "Deployment.gpu-operator.version" "$deployment_fail_result"; then
-    # Check if constraint failed (as expected) using CONSTRAINT_RESULT line
-    if grep -q "CONSTRAINT_RESULT:.*Deployment.gpu-operator.version.*passed=false" "$deployment_fail_result"; then
+     grep -q "gpu-operator-version" "$deployment_fail_result"; then
+    if grep -A1 "name: gpu-operator-version" "$deployment_fail_result" | grep -q "status: failed"; then
       detail "GPU operator version constraint: FAIL (v24.6.0 < v25.0.0) - as expected"
-      pass "validate/deployment-constraint-fail"
-    elif grep -q "summary:" "$deployment_fail_result" && grep -q "status: fail" "$deployment_fail_result"; then
-      # Fallback: check summary status if CONSTRAINT_RESULT format changes
-      detail "GPU operator version constraint: FAIL (from summary status) - as expected"
       pass "validate/deployment-constraint-fail"
     else
       warn "Constraint did not fail as expected"
@@ -949,8 +940,8 @@ RECIPE
 
   # Check the output file for expected-resources check results
   if [ -f "$result_file_fail" ] && \
-     grep -q "TestCheckExpectedResources" "$result_file_fail"; then
-    if grep -A1 "name: TestCheckExpectedResources" "$result_file_fail" | grep -q "status: fail"; then
+     grep -q "name: expected-resources" "$result_file_fail"; then
+    if grep -A1 "name: expected-resources" "$result_file_fail" | grep -q "status: fail"; then
       detail "Expected-resources check: FAIL (nonexistent-deployment not found) - as expected"
       pass "validate/expected-resources-fail"
     elif grep -q "summary:" "$result_file_fail" && grep -q "status: fail" "$result_file_fail"; then
@@ -961,7 +952,7 @@ RECIPE
       fail "validate/expected-resources-fail" "Check did not fail for missing resource"
     fi
   else
-    fail "validate/expected-resources-fail" "TestCheckExpectedResources not found in output"
+    fail "validate/expected-resources-fail" "expected-resources not found in output"
   fi
 
   # Tests 3 & 4: Manual expectedResources with a real helm-installed workload
@@ -1032,15 +1023,15 @@ RECIPE
       detail "Captured validation output:"
       echo "$result_manual_output" | sed 's/^/    /'
 
-      if [ -f "$result_manual" ] && grep -q "TestCheckExpectedResources" "$result_manual"; then
-        if grep -A1 "name: TestCheckExpectedResources" "$result_manual" | grep -q "status: pass"; then
+      if [ -f "$result_manual" ] && grep -q "name: expected-resources" "$result_manual"; then
+        if grep -A1 "name: expected-resources" "$result_manual" | grep -q "status: pass"; then
           detail "Expected-resources check passed for deployed nginx"
           pass "validate/expected-resources-manual-pass"
         else
           fail "validate/expected-resources-manual-pass" "Check did not pass for deployed resource"
         fi
       else
-        fail "validate/expected-resources-manual-pass" "TestCheckExpectedResources not found in output"
+        fail "validate/expected-resources-manual-pass" "expected-resources not found in output"
       fi
 
       # Test 4: Merge — one real resource + one fake resource
@@ -1085,15 +1076,15 @@ RECIPE
       echo "$result_merge_output" | sed 's/^/    /'
 
       # The check should run and fail (because nonexistent-deploy doesn't exist)
-      if [ -f "$result_merge" ] && grep -q "TestCheckExpectedResources" "$result_merge"; then
-        if grep -A1 "name: TestCheckExpectedResources" "$result_merge" | grep -q "status: fail"; then
+      if [ -f "$result_merge" ] && grep -q "name: expected-resources" "$result_merge"; then
+        if grep -A1 "name: expected-resources" "$result_merge" | grep -q "status: fail"; then
           detail "Expected-resources check correctly failed for missing resource in merge"
           pass "validate/expected-resources-manual-merge"
         else
           fail "validate/expected-resources-manual-merge" "Check should have failed for nonexistent-deploy but passed"
         fi
       else
-        fail "validate/expected-resources-manual-merge" "TestCheckExpectedResources not found in output"
+        fail "validate/expected-resources-manual-merge" "expected-resources not found in output"
       fi
     else
       skip "validate/expected-resources-manual-pass" "helm install failed"
@@ -1209,8 +1200,8 @@ RECIPE
   echo "$result_output" | sed 's/^/    /'
 
   if [ -f "$result_file" ] && \
-     grep -q "TestCheckExpectedResources" "$result_file"; then
-    if grep -A1 "name: TestCheckExpectedResources" "$result_file" | grep -q "status: pass"; then
+     grep -q "name: expected-resources" "$result_file"; then
+    if grep -A1 "name: expected-resources" "$result_file" | grep -q "status: pass"; then
       detail "Chainsaw health check: PASS (gpu-operator deployment found via embedded assert)"
       pass "validate/chainsaw-healthcheck-pass"
     elif grep -q "summary:" "$result_file" && grep -q "status: pass" "$result_file"; then
@@ -1218,84 +1209,62 @@ RECIPE
       pass "validate/chainsaw-healthcheck-pass"
     else
       detail "Check found but status unclear. Showing check section:"
-      grep -A5 "TestCheckExpectedResources" "$result_file" | sed 's/^/    /' || true
+      grep -A5 "name: expected-resources" "$result_file" | sed 's/^/    /' || true
       fail "validate/chainsaw-healthcheck-pass" "Check did not pass"
     fi
   else
-    fail "validate/chainsaw-healthcheck-pass" "TestCheckExpectedResources not found in output"
+    fail "validate/chainsaw-healthcheck-pass" "expected-resources not found in output"
   fi
 
-  # Test 2: Chainsaw health check should fail (--data overrides assert to check nonexistent resource)
-  msg "--- Test: Chainsaw health check via --data override (should fail - nonexistent resource) ---"
-  local data_dir="${validate_dir}/data"
-  mkdir -p "${data_dir}/checks/gpu-operator"
-
-  # --data requires a registry.yaml in the external directory
-  cat > "${data_dir}/registry.yaml" <<'REGISTRY'
+  # Test 2: Expected-resources should fail when recipe declares a nonexistent resource
+  msg "--- Test: Expected-resources check (should fail - nonexistent resource) ---"
+  local recipe_file_fail="${validate_dir}/recipe-chainsaw-fail.yaml"
+  cat > "$recipe_file_fail" <<RECIPE
+kind: RecipeResult
 apiVersion: aicr.nvidia.com/v1alpha1
-kind: ComponentRegistry
-components:
-  - name: gpu-operator
-    displayName: GPU Operator
-    healthCheck:
-      assertFile: checks/gpu-operator/health-check.yaml
-    helm:
-      defaultRepository: https://helm.ngc.nvidia.com/nvidia
-      defaultChart: nvidia/gpu-operator
-      defaultNamespace: gpu-operator
-REGISTRY
-
-  cat > "${data_dir}/checks/gpu-operator/health-check.yaml" <<'ASSERT'
-apiVersion: chainsaw.kyverno.io/v1alpha1
-kind: Test
 metadata:
-  name: gpu-operator-health-check
-spec:
-  timeouts:
-    assert: 30s
-  steps:
-    - name: validate-nonexistent-deployment
-      try:
-        - assert:
-            resource:
-              apiVersion: apps/v1
-              kind: Deployment
-              metadata:
-                name: nonexistent-gpu-operator
-                namespace: gpu-operator
-              status:
-                availableReplicas: 1
-ASSERT
+  version: dev
+componentRefs:
+  - name: gpu-operator
+    type: Helm
+    namespace: gpu-operator
+    expectedResources:
+      - kind: Deployment
+        name: nonexistent-gpu-operator
+        namespace: gpu-operator
+validation:
+  deployment:
+    checks:
+      - expected-resources
+RECIPE
 
-  echo -e "${DIM}  \$ aicr validate --phase deployment --data <dir> --recipe recipe.yaml (should fail)${NC}"
+  echo -e "${DIM}  \$ aicr validate --phase deployment --recipe recipe-fail.yaml (should fail)${NC}"
   local result_file_fail="${validate_dir}/result-chainsaw-fail.yaml"
   local result_fail_output
   local validate_fail_exit=0
   result_fail_output=$("${AICR_BIN}" validate \
-    --recipe "$recipe_file" \
+    --recipe "$recipe_file_fail" \
     --snapshot "cm://${SNAPSHOT_NAMESPACE}/${SNAPSHOT_CM}" \
     --phase deployment \
     --validation-namespace aicr-validation \
-    --data "${data_dir}" \
-    --image "${AICR_VALIDATOR_IMAGE}" \
     --output "$result_file_fail" 2>&1) || validate_fail_exit=$?
 
   detail "Captured validation output:"
   echo "$result_fail_output" | sed 's/^/    /'
 
   if [ -f "$result_file_fail" ] && \
-     grep -q "TestCheckExpectedResources" "$result_file_fail"; then
-    if grep -A1 "name: TestCheckExpectedResources" "$result_file_fail" | grep -q "status: fail"; then
-      detail "Chainsaw health check: FAIL (nonexistent resource not found) - as expected"
+     grep -q "name: expected-resources" "$result_file_fail"; then
+    if grep -A1 "name: expected-resources" "$result_file_fail" | grep -q "status: fail"; then
+      detail "Expected-resources check: FAIL (nonexistent resource not found) - as expected"
       pass "validate/chainsaw-healthcheck-fail"
     elif grep -q "summary:" "$result_file_fail" && grep -q "status: fail" "$result_file_fail"; then
-      detail "Chainsaw health check: FAIL (from summary status) - as expected"
+      detail "Expected-resources check: FAIL (from summary status) - as expected"
       pass "validate/chainsaw-healthcheck-fail"
     else
       fail "validate/chainsaw-healthcheck-fail" "Check did not fail for nonexistent resource"
     fi
   else
-    fail "validate/chainsaw-healthcheck-fail" "TestCheckExpectedResources not found in output"
+    fail "validate/chainsaw-healthcheck-fail" "expected-resources not found in output"
   fi
 
   # Cleanup
@@ -1329,18 +1298,18 @@ test_validate_job_deployment() {
 
   # Test 1: Validation with default namespace
   msg "--- Test: Validation Job in default namespace ---"
-  echo -e "${DIM}  \$ aicr validate --recipe recipe.yaml --snapshot cm://... --phase readiness${NC}"
+  echo -e "${DIM}  \$ aicr validate --recipe recipe.yaml --snapshot cm://... --phase deployment${NC}"
 
   # Create validation namespace if it doesn't exist
   kubectl create namespace aicr-validation 2>&1 || true
 
   # Run validation (this should create Jobs)
-  local validation_result="${validate_dir}/validation-default-ns.yaml"
+  local validation_result="${validate_dir}/validation-default-ns.json"
   local validation_exit=0
   "${AICR_BIN}" validate \
     --recipe "$recipe_file" \
     --snapshot "cm://${SNAPSHOT_NAMESPACE}/${SNAPSHOT_CM}" \
-    --phase readiness \
+    --phase deployment \
     --output "$validation_result" \
     --cleanup=false 2>&1 || validation_exit=$?
 
@@ -1353,11 +1322,11 @@ test_validate_job_deployment() {
     pass "validate/job-rbac-serviceaccount"
   fi
 
-  if kubectl get role aicr-validator -n aicr-validation &>/dev/null; then
-    detail "Role created: aicr-validator"
+  if kubectl get clusterrole aicr-validator &>/dev/null; then
+    detail "ClusterRole created: aicr-validator"
     pass "validate/job-rbac-role"
   else
-    warn "Role not found (may be expected if no checks defined)"
+    warn "ClusterRole not found (may be expected if no checks defined)"
     pass "validate/job-rbac-role"
   fi
 
@@ -1418,11 +1387,11 @@ test_validate_job_deployment() {
   kubectl create namespace custom-validation 2>&1 || true
 
   # Run validation with custom namespace
-  local validation_custom="${validate_dir}/validation-custom-ns.yaml"
+  local validation_custom="${validate_dir}/validation-custom-ns.json"
   "${AICR_BIN}" validate \
     --recipe "$recipe_file" \
     --snapshot "cm://${SNAPSHOT_NAMESPACE}/${SNAPSHOT_CM}" \
-    --phase readiness \
+    --phase deployment \
     --validation-namespace custom-validation \
     --output "$validation_custom" \
     --cleanup=false 2>&1 || true  # Keep || true here as this is just testing namespace config
@@ -1448,7 +1417,7 @@ test_validate_job_deployment() {
   "${AICR_BIN}" validate \
     --recipe "$recipe_file" \
     --snapshot "cm://${SNAPSHOT_NAMESPACE}/${SNAPSHOT_CM}" \
-    --phase readiness \
+    --phase deployment \
     --cleanup=true 2>&1 || true  # Keep || true here as this is just testing cleanup
 
   # Give cleanup some time
@@ -1469,9 +1438,8 @@ test_validate_job_deployment() {
   # Test 4: Validation result format
   msg "--- Test: Validation result format ---"
   if [ -f "$validation_result" ]; then
-    # Check for expected YAML structure
-    if grep -q "apiVersion: aicr.nvidia.com" "$validation_result" && \
-       grep -q "kind: ValidationResult" "$validation_result"; then
+    # Check for expected CTRF JSON structure
+    if grep -q 'reportformat: CTRF' "$validation_result" || grep -q '"reportFormat"' "$validation_result"; then
       detail "Validation result has correct structure"
       pass "validate/job-result-format"
     else
