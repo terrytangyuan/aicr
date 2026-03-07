@@ -115,10 +115,18 @@ func verifySingleGPUNode(ctx *validators.Context, nodeName string) error {
 		"image", templateData["IMAGE"],
 		"namespace", ctx.Namespace)
 
-	// Load and create pod directly — no PodLifecycle wrapper needed.
+	// Load pod from template.
 	pod, err := helper.LoadPodFromTemplate(nvidiaSMIPodTemplateFile, templateData)
 	if err != nil {
 		return errors.Wrap(errors.ErrCodeInternal, "failed to load pod template", err)
+	}
+
+	// Inherit tolerations from the validator's own pod spec so the nvidia-smi
+	// verify pod can schedule on the same tainted nodes.
+	ownTolerations, tolErr := helper.GetOwnPodTolerations(ctx.Ctx, ctx.Clientset)
+	if tolErr == nil && len(ownTolerations) > 0 {
+		pod.Spec.Tolerations = ownTolerations
+		slog.Debug("inherited tolerations from validator pod", "count", len(ownTolerations))
 	}
 
 	createdPod, err := ctx.Clientset.CoreV1().Pods(ctx.Namespace).Create(ctx.Ctx, pod, metav1.CreateOptions{})
