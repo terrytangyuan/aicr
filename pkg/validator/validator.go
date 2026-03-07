@@ -255,11 +255,12 @@ func (v *Validator) ValidatePhase(
 }
 
 // filterEntriesByRecipe returns only catalog entries that the recipe declares
-// for the given phase. If the recipe has no checks for this phase, all entries
-// are returned (backward compatible — run everything).
+// for the given phase. If the recipe has no validation section or the phase
+// has no checks declared, no entries are returned (skip the phase).
+// The recipe is the source of truth — only explicitly declared checks run.
 func filterEntriesByRecipe(entries []catalog.ValidatorEntry, phase Phase, recipeResult *recipe.RecipeResult) []catalog.ValidatorEntry {
 	if recipeResult == nil || recipeResult.Validation == nil {
-		return entries
+		return nil
 	}
 
 	var phaseChecks []string
@@ -278,9 +279,9 @@ func filterEntriesByRecipe(entries []catalog.ValidatorEntry, phase Phase, recipe
 		}
 	}
 
-	// No checks declared → run all catalog entries for this phase.
+	// No checks declared for this phase → skip it.
 	if len(phaseChecks) == 0 {
-		return entries
+		return nil
 	}
 
 	// Build set for O(1) lookup.

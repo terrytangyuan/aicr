@@ -16,12 +16,18 @@ package validator
 
 import (
 	"context"
+	"fmt"
+	"io/fs"
+	"path/filepath"
 	"testing"
+
+	"gopkg.in/yaml.v3"
 
 	"github.com/NVIDIA/aicr/pkg/recipe"
 	"github.com/NVIDIA/aicr/pkg/snapshotter"
 	"github.com/NVIDIA/aicr/pkg/validator/catalog"
 	"github.com/NVIDIA/aicr/pkg/validator/ctrf"
+	"github.com/NVIDIA/aicr/recipes"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -266,8 +272,8 @@ func TestFilterEntriesByRecipeNilRecipe(t *testing.T) {
 		{Name: "v2", Phase: "deployment"},
 	}
 	got := filterEntriesByRecipe(entries, PhaseDeployment, nil)
-	if len(got) != 2 {
-		t.Errorf("filterEntriesByRecipe(nil recipe) returned %d entries, want 2", len(got))
+	if len(got) != 0 {
+		t.Errorf("filterEntriesByRecipe(nil recipe) returned %d entries, want 0 (skip)", len(got))
 	}
 }
 
@@ -277,8 +283,8 @@ func TestFilterEntriesByRecipeNilValidation(t *testing.T) {
 	}
 	rec := &recipe.RecipeResult{Validation: nil}
 	got := filterEntriesByRecipe(entries, PhaseDeployment, rec)
-	if len(got) != 1 {
-		t.Errorf("filterEntriesByRecipe(nil validation) returned %d entries, want 1", len(got))
+	if len(got) != 0 {
+		t.Errorf("filterEntriesByRecipe(nil validation) returned %d entries, want 0 (skip)", len(got))
 	}
 }
 
@@ -293,8 +299,8 @@ func TestFilterEntriesByRecipeNoChecks(t *testing.T) {
 		},
 	}
 	got := filterEntriesByRecipe(entries, PhaseDeployment, rec)
-	if len(got) != 2 {
-		t.Errorf("filterEntriesByRecipe(empty checks) returned %d entries, want 2 (all)", len(got))
+	if len(got) != 0 {
+		t.Errorf("filterEntriesByRecipe(empty checks) returned %d entries, want 0 (skip)", len(got))
 	}
 }
 
@@ -338,7 +344,7 @@ func TestFilterEntriesByRecipeWithChecks(t *testing.T) {
 			expected: 0,
 		},
 		{
-			name:  "conformance phase returns all when nil phase config",
+			name:  "conformance phase returns none when nil phase config",
 			phase: PhaseConformance,
 			rec: &recipe.RecipeResult{
 				Validation: &recipe.ValidationConfig{
@@ -347,7 +353,7 @@ func TestFilterEntriesByRecipeWithChecks(t *testing.T) {
 					},
 				},
 			},
-			expected: 3,
+			expected: 0,
 		},
 	}
 	for _, tt := range tests {
@@ -379,8 +385,8 @@ func TestFilterEntriesByRecipeEmptyChecksList(t *testing.T) {
 		},
 	}
 	got := filterEntriesByRecipe(entries, PhaseDeployment, rec)
-	if len(got) != 1 {
-		t.Errorf("filterEntriesByRecipe(empty checks list) returned %d entries, want 1 (all)", len(got))
+	if len(got) != 0 {
+		t.Errorf("filterEntriesByRecipe(empty checks list) returned %d entries, want 0 (skip)", len(got))
 	}
 }
 
@@ -394,4 +400,82 @@ func TestPhaseOrder(t *testing.T) {
 			t.Errorf("PhaseOrder[%d] = %q, want %q", i, p, expected[i])
 		}
 	}
+}
+
+// TestRecipeCheckNamesMatchCatalog verifies that every check name referenced
+// in recipe overlays exists in the validator catalog for the correct phase.
+// Catches typos and drift between recipes and catalog at PR time.
+func TestRecipeCheckNamesMatchCatalog(t *testing.T) {
+	cat, err := catalog.Load()
+	if err != nil {
+		t.Fatalf("failed to load catalog: %v", err)
+	}
+
+	// Build lookup: phase → set of valid check names.
+	validChecks := map[string]map[string]bool{
+		"deployment":  make(map[string]bool),
+		"performance": make(map[string]bool),
+		"conformance": make(map[string]bool),
+	}
+	for _, entry := range cat.Validators {
+		if m, ok := validChecks[entry.Phase]; ok {
+			m[entry.Name] = true
+		}
+	}
+
+	// Walk all embedded overlay YAML files.
+	err = fs.WalkDir(recipes.FS, "overlays", func(path string, d fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if d.IsDir() || filepath.Ext(path) != ".yaml" {
+			return nil
+		}
+
+		data, readErr := recipes.FS.ReadFile(path)
+		if readErr != nil {
+			return fmt.Errorf("failed to read %s: %w", path, readErr)
+		}
+
+		var metadata recipe.RecipeMetadata
+		if unmarshalErr := yaml.Unmarshal(data, &metadata); unmarshalErr != nil {
+			return nil // skip non-recipe YAML
+		}
+
+		if metadata.Spec.Validation == nil {
+			return nil
+		}
+
+		phases := map[string]*recipe.ValidationPhase{
+			"deployment":  metadata.Spec.Validation.Deployment,
+			"performance": metadata.Spec.Validation.Performance,
+			"conformance": metadata.Spec.Validation.Conformance,
+		}
+
+		for phase, vp := range phases {
+			if vp == nil {
+				continue
+			}
+			for _, checkName := range vp.Checks {
+				if !validChecks[phase][checkName] {
+					t.Errorf("%s: check %q in %s phase does not exist in catalog (valid: %v)",
+						path, checkName, phase, catalogNames(cat, phase))
+				}
+			}
+		}
+
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("failed to walk overlays: %v", err)
+	}
+}
+
+func catalogNames(cat *catalog.ValidatorCatalog, phase string) []string {
+	entries := cat.ForPhase(phase)
+	names := make([]string, 0, len(entries))
+	for _, e := range entries {
+		names = append(names, e.Name)
+	}
+	return names
 }
