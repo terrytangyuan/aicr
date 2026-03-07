@@ -37,6 +37,23 @@ func CheckDRASupport(ctx *validators.Context) error {
 		return errors.New(errors.ErrCodeInvalidRequest, "kubernetes client is not available")
 	}
 
+	// 0. Check if DRA API is available (skip gracefully if not).
+	_, draAPIErr := ctx.Clientset.Discovery().ServerResourcesForGroupVersion("resource.k8s.io/v1beta1")
+	if draAPIErr != nil {
+		return validators.Skip("DRA API (resource.k8s.io/v1beta1) not available — cluster may not support Dynamic Resource Allocation")
+	}
+
+	// 0b. Check if nvidia DRA driver is installed.
+	draPods, draPodErr := ctx.Clientset.CoreV1().Pods("nvidia-dra-driver").List(ctx.Ctx, metav1.ListOptions{})
+	if draPodErr != nil || len(draPods.Items) == 0 {
+		// Also check for the controller deployment as a fallback.
+		_, deployCheckErr := ctx.Clientset.AppsV1().Deployments("nvidia-dra-driver").Get(
+			ctx.Ctx, "nvidia-dra-driver-gpu-controller", metav1.GetOptions{})
+		if deployCheckErr != nil {
+			return validators.Skip("NVIDIA DRA driver not found — nvidia-dra-driver namespace has no pods or controller deployment")
+		}
+	}
+
 	// 1. DRA API resources are discoverable.
 	resources, err := ctx.Clientset.Discovery().ServerResourcesForGroupVersion("resource.k8s.io/v1")
 	if err != nil {

@@ -100,6 +100,13 @@ func CheckGangScheduling(ctx *validators.Context) error {
 		return errors.New(errors.ErrCodeInvalidRequest, "kubernetes client is not available")
 	}
 
+	// 0. Check if KAI scheduler is installed (skip gracefully if not).
+	_, kaiCheckErr := ctx.Clientset.AppsV1().Deployments("kai-scheduler").Get(
+		ctx.Ctx, "kai-scheduler-default", metav1.GetOptions{})
+	if kaiCheckErr != nil {
+		return validators.Skip("KAI scheduler not found — cluster may use a different scheduler")
+	}
+
 	// 1. All KAI scheduler deployments available.
 	var deploymentsSummary strings.Builder
 	for _, name := range kaiSchedulerDeployments {

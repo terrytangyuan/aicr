@@ -60,6 +60,14 @@ func CheckPodAutoscaling(ctx *validators.Context) error {
 		return errors.New(errors.ErrCodeInvalidRequest, "kubernetes client is not available")
 	}
 
+	// 0. Check if DCGM exporter is running (needed for GPU-aware HPA).
+	dcgmPods, dcgmErr := ctx.Clientset.CoreV1().Pods("").List(ctx.Ctx, metav1.ListOptions{
+		LabelSelector: "app=nvidia-dcgm-exporter",
+	})
+	if dcgmErr != nil || len(dcgmPods.Items) == 0 {
+		return validators.Skip("DCGM exporter not found — GPU metrics not available for HPA")
+	}
+
 	// 1. Custom metrics API available
 	restClient := ctx.Clientset.Discovery().RESTClient()
 	if restClient == nil {
