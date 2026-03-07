@@ -103,15 +103,17 @@ func checkNvidiaSMI(ctx *validators.Context) error {
 }
 
 func verifySingleGPUNode(ctx *validators.Context, nodeName string) error {
+	podSuffix := sanitizeNodeName(nodeName)
 	templateData := map[string]string{
-		"NODE_NAME": sanitizeNodeName(nodeName),
-		"NAMESPACE": ctx.Namespace,
-		"IMAGE":     getNvidiaSMIImage(ctx),
+		"POD_SUFFIX": podSuffix,
+		"NODE_NAME":  nodeName,
+		"NAMESPACE":  ctx.Namespace,
+		"IMAGE":      getNvidiaSMIImage(ctx),
 	}
 
 	slog.Info("deploying nvidia-smi verify pod",
 		"node", nodeName,
-		"podName", "nvidia-smi-verify-"+sanitizeNodeName(nodeName),
+		"podName", "nvidia-smi-verify-"+podSuffix,
 		"image", templateData["IMAGE"],
 		"namespace", ctx.Namespace)
 

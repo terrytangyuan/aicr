@@ -15,7 +15,7 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: nvidia-smi-verify-${NODE_NAME}
+  name: nvidia-smi-verify-${POD_SUFFIX}
   namespace: ${NAMESPACE}
   labels:
     source: e2e-tests
