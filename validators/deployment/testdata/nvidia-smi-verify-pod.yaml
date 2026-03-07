@@ -40,8 +40,5 @@ spec:
         nvidia.com/gpu: "1"
       requests:
         nvidia.com/gpu: "1"
-  tolerations:
-  - key: dedicated
-    value: user-workload
-    operator: Equal
-    effect: NoExecute
+  # Tolerations are injected at runtime from the validator pod's own spec.
+  tolerations: []
