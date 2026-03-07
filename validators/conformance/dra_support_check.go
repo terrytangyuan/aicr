@@ -18,8 +18,8 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
+	"github.com/NVIDIA/aicr/pkg/defaults"
 	"github.com/NVIDIA/aicr/pkg/errors"
 	"github.com/NVIDIA/aicr/validators"
 	corev1 "k8s.io/api/core/v1"
@@ -135,7 +135,7 @@ func validateDRAAllocation(ctx *validators.Context, dynClient dynamic.Interface)
 		return err
 	}
 	defer func() { //nolint:contextcheck // Fresh context: parent may be canceled during cleanup
-		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 30*time.Second)
+		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), defaults.K8sCleanupTimeout)
 		defer cleanupCancel()
 		cleanupDRATestResources(cleanupCtx, ctx.Clientset, dynClient, run)
 		recordRawTextArtifact(ctx, "Delete test namespace",
@@ -176,7 +176,7 @@ func validateDRAAllocation(ctx *validators.Context, dynClient dynamic.Interface)
 		recordRawTextArtifact(ctx, "Pod logs", "kubectl logs dra-gpu-test -n dra-test",
 			fmt.Sprintf("failed to read logs: %v", logErr))
 	} else {
-		recordChunkedTextArtifact(ctx, "Pod logs", "kubectl logs dra-gpu-test -n dra-test", string(logBytes))
+		recordRawTextArtifact(ctx, "Pod logs", "kubectl logs dra-gpu-test -n dra-test", string(logBytes))
 	}
 
 	if pod.Status.Phase != corev1.PodSucceeded {

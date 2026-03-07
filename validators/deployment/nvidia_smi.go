@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
-	"time"
 
 	"github.com/NVIDIA/aicr/pkg/defaults"
 	"github.com/NVIDIA/aicr/pkg/errors"
@@ -122,7 +121,7 @@ func verifySingleGPUNode(ctx *validators.Context, nodeName string) error {
 	}
 
 	defer func() { //nolint:contextcheck // Fresh context: parent may be canceled during cleanup
-		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 30*time.Second)
+		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), defaults.K8sCleanupTimeout)
 		defer cleanupCancel()
 		if cleanupErr := ctx.Clientset.CoreV1().Pods(ctx.Namespace).Delete(cleanupCtx, createdPod.Name, metav1.DeleteOptions{}); cleanupErr != nil {
 			slog.Warn("failed to cleanup pod", "namespace", createdPod.Namespace, "pod", createdPod.Name, "error", cleanupErr)

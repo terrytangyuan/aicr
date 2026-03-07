@@ -55,9 +55,9 @@ func TestExtractVersionFromImage(t *testing.T) {
 			want:  "",
 		},
 		{
-			name:  "multiple colons returns empty",
+			name:  "registry with port",
 			image: "host:5000/nvidia/gpu-operator:v1.0.0",
-			want:  "",
+			want:  "v1.0.0",
 		},
 	}
 	for _, tt := range tests {

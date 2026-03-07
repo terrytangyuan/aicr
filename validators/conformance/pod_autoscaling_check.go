@@ -27,6 +27,7 @@ import (
 	"github.com/NVIDIA/aicr/pkg/errors"
 	"github.com/NVIDIA/aicr/pkg/k8s"
 	"github.com/NVIDIA/aicr/validators"
+	"github.com/NVIDIA/aicr/validators/helper"
 	appsv1 "k8s.io/api/apps/v1"
 	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	corev1 "k8s.io/api/core/v1"
@@ -337,7 +338,7 @@ func buildHPATestHPA(name, deployName, namespace string) *autoscalingv2.Horizont
 				Kind:       "Deployment",
 				Name:       deployName,
 			},
-			MinReplicas: int32Ptr(1),
+			MinReplicas: helper.Int32Ptr(1),
 			MaxReplicas: 3,
 			Metrics: []autoscalingv2.MetricSpec{
 				{
@@ -357,7 +358,7 @@ func buildHPATestHPA(name, deployName, namespace string) *autoscalingv2.Horizont
 			// so the scale-down behavioral test completes in reasonable time.
 			Behavior: &autoscalingv2.HorizontalPodAutoscalerBehavior{
 				ScaleDown: &autoscalingv2.HPAScalingRules{
-					StabilizationWindowSeconds: int32Ptr(0),
+					StabilizationWindowSeconds: helper.Int32Ptr(0),
 				},
 			},
 		},

@@ -26,6 +26,7 @@ import (
 	"github.com/NVIDIA/aicr/pkg/errors"
 	"github.com/NVIDIA/aicr/pkg/k8s"
 	"github.com/NVIDIA/aicr/validators"
+	"github.com/NVIDIA/aicr/validators/helper"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -174,7 +175,7 @@ func CheckGangScheduling(ctx *validators.Context) error {
 	}
 
 	defer func() { //nolint:contextcheck // Fresh context: parent may be canceled during cleanup
-		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 30*time.Second)
+		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), defaults.K8sCleanupTimeout)
 		defer cleanupCancel()
 		cleanupGangTestResources(cleanupCtx, ctx.Clientset, dynClient, run)
 		recordRawTextArtifact(ctx, "Delete test namespace",
@@ -260,7 +261,7 @@ func collectGangTestArtifacts(ctx *validators.Context, dynClient dynamic.Interfa
 				fmt.Sprintf("failed to read logs: %v", logErr))
 			continue
 		}
-		recordChunkedTextArtifact(ctx, label,
+		recordRawTextArtifact(ctx, label,
 			fmt.Sprintf("kubectl logs gang-worker-%d -n gang-scheduling-test", i),
 			string(logBytes))
 	}
@@ -512,7 +513,7 @@ func buildGangTestPod(run *gangTestRun, index int) *corev1.Pod {
 			ResourceClaims: []corev1.PodResourceClaim{
 				{
 					Name:              "gpu",
-					ResourceClaimName: strPtr(run.claims[index]),
+					ResourceClaimName: helper.StrPtr(run.claims[index]),
 				},
 			},
 			Containers: []corev1.Container{

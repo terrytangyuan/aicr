@@ -16,6 +16,7 @@ package validators
 
 import (
 	"errors"
+	"strings"
 	"testing"
 )
 
@@ -54,7 +55,7 @@ func TestSkip(t *testing.T) {
 			if got := errors.Is(err, errSkip); got != tt.wantIsErrSkip {
 				t.Errorf("errors.Is(Skip(%q), errSkip) = %v, want %v", tt.reason, got, tt.wantIsErrSkip)
 			}
-			if msg := err.Error(); !containsSubstring(msg, tt.wantSubstring) {
+			if msg := err.Error(); !strings.Contains(msg, tt.wantSubstring) {
 				t.Errorf("Skip(%q).Error() = %q, want substring %q", tt.reason, msg, tt.wantSubstring)
 			}
 		})
@@ -67,17 +68,4 @@ func TestSkipIsNotGenericError(t *testing.T) {
 	if errors.Is(plain, errSkip) {
 		t.Error("plain error should not match errSkip")
 	}
-}
-
-func containsSubstring(s, substr string) bool {
-	return len(substr) == 0 || (len(s) >= len(substr) && containsStr(s, substr))
-}
-
-func containsStr(s, sub string) bool {
-	for i := 0; i <= len(s)-len(sub); i++ {
-		if s[i:i+len(sub)] == sub {
-			return true
-		}
-	}
-	return false
 }
