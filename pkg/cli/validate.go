@@ -400,7 +400,7 @@ func validateCmdFlags() []cli.Flag {
 			Category: "Evidence",
 		},
 		&cli.StringSliceFlag{
-			Name: "feature",
+			Name:    "feature",
 			Aliases: []string{"f"},
 			Usage: "Evidence feature to collect (repeatable, default: all). Only used with --cncf-submission.\n" +
 				"Options: " + strings.Join(evidence.ValidFeatures, ", "),
