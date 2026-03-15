@@ -25,8 +25,7 @@ aicr snapshot \
 aicr recipe \
   --snapshot snapshot.yaml \
   --intent training \
-  --node-selector nodeGroup=gpu-worker \
-  --output recipe.yaml
+  --node-selector nodeGroup=gpu-worker
 ```
 
 ## Bundling for Deployment

@@ -375,8 +375,7 @@ cleanup: ## Cleans up AICR Kubernetes resources (requires kubectl)
 .PHONY: demos
 demos: ## Creates demo GIFs using VHS tool (requires: brew install vhs)
 	@command -v vhs >/dev/null 2>&1 || (echo "Error: vhs is not installed. Install: brew install vhs" && exit 1)
-	vhs demos/videos/cli.tape -o demos/videos/cli.gif
-	vhs demos/videos/e2e.tape -o demos/videos/e2e.gif
+	vhs demos/vhs/recipe.tape -o demos/vhs/recipe.mp4
 
 # =============================================================================
 # Tilt Local Development
