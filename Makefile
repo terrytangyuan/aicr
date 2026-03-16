@@ -376,7 +376,9 @@ cleanup: ## Cleans up AICR Kubernetes resources (requires kubectl)
 demos: ## Creates demo GIFs using VHS tool (requires: brew install vhs)
 	@command -v vhs >/dev/null 2>&1 || (echo "Error: vhs is not installed. Install: brew install vhs" && exit 1)
 	vhs demos/vhs/recipe.tape -o demos/vhs/recipe.mp4
-	vhs demos/vhs/bundle.tape -o demos/vhs/bundle.mp4
+	aicr recipe --service eks --accelerator h100 --intent training --os ubuntu --platform kubeflow --output recipe.yaml
+	rm -rf ./bundle && vhs demos/vhs/bundle.tape -o demos/vhs/bundle.mp4
+	vhs demos/vhs/validation.tape -o demos/vhs/validation.mp4
 
 # =============================================================================
 # Tilt Local Development
