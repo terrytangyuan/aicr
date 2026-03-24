@@ -56,22 +56,6 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Scan Repo
-        continue-on-error: true
-        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1  # v0.35.0
-        with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          vuln-type: 'os,library'
-          scanners: 'vuln,secret,misconfig'
-          ignore-unfixed: true
-          format: 'sarif'
-          output: ${{ env.SARIF_OUTPUT }}
-          severity: ${{ env.SEVERITY_LEVELS }}
-          skip-dirs: 'vendor,node_modules,distros/kubernetes,tests,tilt'
-          trivyignores: '.trivyignore.yaml'
-          limit-severities-for-sarif: true
-
       - name: Check SARIF file exists
         id: check_sarif
         run: |
