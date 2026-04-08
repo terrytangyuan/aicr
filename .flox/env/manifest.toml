@@ -76,11 +76,11 @@ yq.version = "^4"
 
 
 ## Environment Variables ---------------------------------------------
-##  GOFLAGS is used by Makefile targets (go vet, go test, golangci-lint)
 ##  GOPATH/GOBIN keep Go tool installs inside the flox environment cache
+##  Note: GOFLAGS="-mod=vendor" is intentionally NOT set here — it breaks
+##  `go install` and `go get`. The Makefile sets it per-command where needed.
 ## -------------------------------------------------------------------
 [vars]
-GOFLAGS = "-mod=vendor"
 
 
 ## Activation Hook ---------------------------------------------------
