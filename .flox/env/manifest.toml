@@ -92,6 +92,15 @@ on-activate = '''
   export GOPATH="$FLOX_ENV_CACHE/go"
   export GOBIN="$GOPATH/bin"
   mkdir -p "$GOBIN"
+
+  # Helm v3 notice — nixpkgs does not yet package Helm 4.
+  # Once available, pin kubernetes-helm.version = "^4" and remove this note.
+  helm_ver="$(helm version --short 2>/dev/null || true)"
+  if [ -n "$helm_ver" ]; then
+    case "$helm_ver" in
+      v3.*) echo "⚠ Flox provides Helm ${helm_ver} (v3). Helm 4 is not yet available in nixpkgs." ;;
+    esac
+  fi
 '''
 
 
