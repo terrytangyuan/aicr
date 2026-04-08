@@ -84,13 +84,16 @@ yq.version = "^4"
 
 
 ## Activation Hook ---------------------------------------------------
-##  Sets up GOPATH/GOBIN inside the flox cache so `go install` artifacts
-##  stay isolated and are on PATH automatically.
+##  Runs once in bash on `flox activate`. Exported variables are inherited
+##  by [profile] scripts and the user's shell, so there is no need to
+##  duplicate them in [profile].
+##  https://flox.dev/docs/tutorials/customizing-environments/
 ## -------------------------------------------------------------------
 [hook]
 on-activate = '''
   export GOPATH="$FLOX_ENV_CACHE/go"
   export GOBIN="$GOPATH/bin"
+  export PATH="$GOBIN:$PATH"
   mkdir -p "$GOBIN"
 
   # Helm v3 notice — nixpkgs does not yet package Helm 4.
@@ -105,14 +108,7 @@ on-activate = '''
 
 
 ## Profile script ----------------------------------------------------
-##  Ensures GOBIN is on PATH in the user's shell.
-## -------------------------------------------------------------------
 [profile]
-common = '''
-  export GOPATH="$FLOX_ENV_CACHE/go"
-  export GOBIN="$GOPATH/bin"
-  export PATH="$GOBIN:$PATH"
-'''
 
 
 ## Services ---------------------------------------------------------
