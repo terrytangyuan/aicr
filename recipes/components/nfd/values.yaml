@@ -12,29 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Network Operator Helm values
-# Base configuration for all deployments
+# Node Feature Discovery standalone deployment
+# NFD v0.18.3 — shared by gpu-operator and network-operator
 
-# Override release name prefix to avoid aicr-stack- prefix in resource names
-operator:
-  fullnameOverride: network-operator
-  tolerations:
-    - operator: Exists
+# Enable NodeFeature API (CRD-based feature publishing)
+enableNodeFeatureApi: true
 
-deployCR: true
+# Topology Updater disabled by default (enable via overlay override)
+topologyUpdater:
+  enable: false
 
-nfd:
-  enabled: false
-  deployNodeFeatureRules: true
-
-sriovNetworkOperator:
-  enabled: false
-
-nvIpam:
-  enabled: true
-
-secondaryNetwork:
-  deploy: true
-
-nicClusterPolicy:
-  enabled: true
+# GC enabled for cleanup of stale NodeFeature/NodeResourceTopology CRs
+gc:
+  enable: true
