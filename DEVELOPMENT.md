@@ -135,16 +135,16 @@ make tools-check
 ```
 
 > **Note:** Some tools may report version warnings due to nixpkgs package availability.
-> For example, Helm (nixpkgs provides v3.x while `.settings.yaml` requires v4.x) and
-> Tilt may lag behind the expected versions. These are known gaps — check the inline
-> comments in `.flox/env/manifest.toml` for details on specific deviations.
+> For example, Helm (nixpkgs provides v3.x while `.settings.yaml` requires v4.x) is a
+> known gap — check the inline comments in `.flox/env/manifest.toml` for details on
+> specific deviations.
 
 Benefits over `make tools-setup`:
 - No system-wide installs — tools are scoped to the project shell
 - Reproducible across machines via the lockfile (`.flox/env/manifest.lock`)
 - Single command to get a fully configured environment
 
-The Flox manifest (`.flox/env/manifest.toml`) tracks the tools defined in `tools/setup-tools`. It is maintained on a best-effort basis and may occasionally lag behind `.settings.yaml`. `.settings.yaml` remains the authoritative source of truth for versions. Not all tools from `.settings.yaml` are covered — some (e.g., kwok, karpenter, hugo, node) are omitted due to nixpkgs availability or limited use. Run `make tools-check` after `flox activate` to identify any gaps.
+The Flox manifest (`.flox/env/manifest.toml`) tracks the tools defined in `tools/setup-tools`. It is maintained on a best-effort basis and may occasionally lag behind `.settings.yaml`. `.settings.yaml` remains the authoritative source of truth for versions. Karpenter is intentionally excluded (it is a server-side K8s controller, not a local CLI tool). Run `make tools-check` after `flox activate` to identify any gaps.
 
 #### Keeping Flox in Sync
 

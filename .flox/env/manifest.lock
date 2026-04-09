@@ -16,6 +16,7 @@
       },
       "crane": {
         "pkg-path": "crane",
+        "version": "^0.21",
         "outputs": "all"
       },
       "ctlptl": {
@@ -42,7 +43,8 @@
         "version": "^2"
       },
       "grype": {
-        "pkg-path": "grype"
+        "pkg-path": "grype",
+        "version": "^0.108"
       },
       "hugo": {
         "pkg-path": "hugo",
@@ -58,7 +60,7 @@
       },
       "kubectl": {
         "pkg-path": "kubectl",
-        "version": "^1",
+        "version": "^1.35",
         "outputs": "all"
       },
       "kubernetes-helm": {
@@ -72,11 +74,13 @@
         "pkg-path": "nodejs_22"
       },
       "syft": {
-        "pkg-path": "syft"
+        "pkg-path": "syft",
+        "version": "^1.42"
       },
       "tilt": {
         "pkg-path": "tilt",
-        "version": "^0.36"
+        "pkg-group": "tilt",
+        "version": "^0.37"
       },
       "yamllint": {
         "pkg-path": "yamllint",
@@ -95,6 +99,122 @@
     "options": {}
   },
   "packages": [
+    {
+      "attr_path": "tilt",
+      "broken": false,
+      "derivation": "/nix/store/0bl4h5nrc9gpymw51vgswg6d8lgiawd0-tilt-0.37.0.drv",
+      "description": "Local development tool to manage your developer instance when your team deploys to Kubernetes in production",
+      "install_id": "tilt",
+      "license": "Apache-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=68d8aa3d661f0e6bd5862291b5bb263b2a6595c9",
+      "name": "tilt-0.37.0",
+      "pname": "tilt",
+      "rev": "68d8aa3d661f0e6bd5862291b5bb263b2a6595c9",
+      "rev_count": 975402,
+      "rev_date": "2026-04-05T21:03:29Z",
+      "scrape_date": "2026-04-07T06:05:44.286137Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "0.37.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/dbp39d3lgwj3r5v590gr5z651y8jms9w-tilt-0.37.0"
+      },
+      "system": "aarch64-darwin",
+      "group": "tilt",
+      "priority": 5
+    },
+    {
+      "attr_path": "tilt",
+      "broken": false,
+      "derivation": "/nix/store/v9w8rf29lyknli6f5cc796yz5v25qizp-tilt-0.37.0.drv",
+      "description": "Local development tool to manage your developer instance when your team deploys to Kubernetes in production",
+      "install_id": "tilt",
+      "license": "Apache-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=68d8aa3d661f0e6bd5862291b5bb263b2a6595c9",
+      "name": "tilt-0.37.0",
+      "pname": "tilt",
+      "rev": "68d8aa3d661f0e6bd5862291b5bb263b2a6595c9",
+      "rev_count": 975402,
+      "rev_date": "2026-04-05T21:03:29Z",
+      "scrape_date": "2026-04-07T06:38:05.320769Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "0.37.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/ri4qskkwwipm669kjgwh26zkrdmh2lfw-tilt-0.37.0"
+      },
+      "system": "aarch64-linux",
+      "group": "tilt",
+      "priority": 5
+    },
+    {
+      "attr_path": "tilt",
+      "broken": false,
+      "derivation": "/nix/store/ildr55casc3sq5bzj2rx09l0fzzdq9yi-tilt-0.37.0.drv",
+      "description": "Local development tool to manage your developer instance when your team deploys to Kubernetes in production",
+      "install_id": "tilt",
+      "license": "Apache-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=68d8aa3d661f0e6bd5862291b5bb263b2a6595c9",
+      "name": "tilt-0.37.0",
+      "pname": "tilt",
+      "rev": "68d8aa3d661f0e6bd5862291b5bb263b2a6595c9",
+      "rev_count": 975402,
+      "rev_date": "2026-04-05T21:03:29Z",
+      "scrape_date": "2026-04-07T07:07:11.188899Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "0.37.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/csrvlg0scvvbbwhr3hlx2300x507vaa9-tilt-0.37.0"
+      },
+      "system": "x86_64-darwin",
+      "group": "tilt",
+      "priority": 5
+    },
+    {
+      "attr_path": "tilt",
+      "broken": false,
+      "derivation": "/nix/store/dmin5hi8j7ppzd6vjf9adj944jfvaijk-tilt-0.37.0.drv",
+      "description": "Local development tool to manage your developer instance when your team deploys to Kubernetes in production",
+      "install_id": "tilt",
+      "license": "Apache-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=68d8aa3d661f0e6bd5862291b5bb263b2a6595c9",
+      "name": "tilt-0.37.0",
+      "pname": "tilt",
+      "rev": "68d8aa3d661f0e6bd5862291b5bb263b2a6595c9",
+      "rev_count": 975402,
+      "rev_date": "2026-04-05T21:03:29Z",
+      "scrape_date": "2026-04-07T07:42:10.547277Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "0.37.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/f2l4wxd79nf9yln7cjqa94h49x0z87ga-tilt-0.37.0"
+      },
+      "system": "x86_64-linux",
+      "group": "tilt",
+      "priority": 5
+    },
     {
       "attr_path": "addlicense",
       "broken": false,
@@ -2310,122 +2430,6 @@
       ],
       "outputs": {
         "out": "/nix/store/77yyc62875yz29fgv1h38sfpayf6q4m3-syft-1.42.1"
-      },
-      "system": "x86_64-linux",
-      "group": "toplevel",
-      "priority": 5
-    },
-    {
-      "attr_path": "tilt",
-      "broken": false,
-      "derivation": "/nix/store/fnk7yhg96m67z7ryiwahzyi8hv2x8z36-tilt-0.36.3.drv",
-      "description": "Local development tool to manage your developer instance when your team deploys to Kubernetes in production",
-      "install_id": "tilt",
-      "license": "Apache-2.0",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=aca4d95fce4914b3892661bcb80b8087293536c6",
-      "name": "tilt-0.36.3",
-      "pname": "tilt",
-      "rev": "aca4d95fce4914b3892661bcb80b8087293536c6",
-      "rev_count": 958961,
-      "rev_date": "2026-03-06T04:56:59Z",
-      "scrape_date": "2026-03-08T04:48:50.070129Z",
-      "stabilities": [
-        "unstable"
-      ],
-      "unfree": false,
-      "version": "0.36.3",
-      "outputs_to_install": [
-        "out"
-      ],
-      "outputs": {
-        "out": "/nix/store/msnfagrqwi0nc2cngwma4dlap17np1py-tilt-0.36.3"
-      },
-      "system": "aarch64-darwin",
-      "group": "toplevel",
-      "priority": 5
-    },
-    {
-      "attr_path": "tilt",
-      "broken": false,
-      "derivation": "/nix/store/5c877d8c0q16byxrf172lcj76hcwbijb-tilt-0.36.3.drv",
-      "description": "Local development tool to manage your developer instance when your team deploys to Kubernetes in production",
-      "install_id": "tilt",
-      "license": "Apache-2.0",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=aca4d95fce4914b3892661bcb80b8087293536c6",
-      "name": "tilt-0.36.3",
-      "pname": "tilt",
-      "rev": "aca4d95fce4914b3892661bcb80b8087293536c6",
-      "rev_count": 958961,
-      "rev_date": "2026-03-06T04:56:59Z",
-      "scrape_date": "2026-03-08T05:26:19.790258Z",
-      "stabilities": [
-        "unstable"
-      ],
-      "unfree": false,
-      "version": "0.36.3",
-      "outputs_to_install": [
-        "out"
-      ],
-      "outputs": {
-        "out": "/nix/store/am0dxbrhnc8ykhahp4qfi5f3b2hcy9am-tilt-0.36.3"
-      },
-      "system": "aarch64-linux",
-      "group": "toplevel",
-      "priority": 5
-    },
-    {
-      "attr_path": "tilt",
-      "broken": false,
-      "derivation": "/nix/store/jwv2hqi9k8xfs1g999m26c6933hzz1i1-tilt-0.36.3.drv",
-      "description": "Local development tool to manage your developer instance when your team deploys to Kubernetes in production",
-      "install_id": "tilt",
-      "license": "Apache-2.0",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=aca4d95fce4914b3892661bcb80b8087293536c6",
-      "name": "tilt-0.36.3",
-      "pname": "tilt",
-      "rev": "aca4d95fce4914b3892661bcb80b8087293536c6",
-      "rev_count": 958961,
-      "rev_date": "2026-03-06T04:56:59Z",
-      "scrape_date": "2026-03-08T06:05:52.614182Z",
-      "stabilities": [
-        "unstable"
-      ],
-      "unfree": false,
-      "version": "0.36.3",
-      "outputs_to_install": [
-        "out"
-      ],
-      "outputs": {
-        "out": "/nix/store/xvlmg6kbryxzdgjgyi2y0ski3lfvpw5a-tilt-0.36.3"
-      },
-      "system": "x86_64-darwin",
-      "group": "toplevel",
-      "priority": 5
-    },
-    {
-      "attr_path": "tilt",
-      "broken": false,
-      "derivation": "/nix/store/d6hvgx1dkfbc7xqsakz75j17dm0whvn1-tilt-0.36.3.drv",
-      "description": "Local development tool to manage your developer instance when your team deploys to Kubernetes in production",
-      "install_id": "tilt",
-      "license": "Apache-2.0",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=aca4d95fce4914b3892661bcb80b8087293536c6",
-      "name": "tilt-0.36.3",
-      "pname": "tilt",
-      "rev": "aca4d95fce4914b3892661bcb80b8087293536c6",
-      "rev_count": 958961,
-      "rev_date": "2026-03-06T04:56:59Z",
-      "scrape_date": "2026-03-08T06:49:44.972643Z",
-      "stabilities": [
-        "unstable"
-      ],
-      "unfree": false,
-      "version": "0.36.3",
-      "outputs_to_install": [
-        "out"
-      ],
-      "outputs": {
-        "out": "/nix/store/gnn0rixbfdjhp7d2h9cn1fgj05bmpma7-tilt-0.36.3"
       },
       "system": "x86_64-linux",
       "group": "toplevel",

@@ -23,8 +23,8 @@ goreleaser.version = "^2"
 ko.pkg-path = "ko"
 ko.version = "^0.18"
 crane.pkg-path = "crane"
+crane.version = "^0.21"
 crane.outputs = "all"
-# crane 0.21 not yet in nixpkgs; unpinned to get latest available
 git-cliff.pkg-path = "git-cliff"
 git-cliff.version = "^2"
 
@@ -39,15 +39,16 @@ go-licenses.pkg-path = "go-licenses"
 
 # Security tools
 grype.pkg-path = "grype"
-# grype 0.107 not yet in nixpkgs; unpinned to get latest available
+# grype 0.107 was never packaged in nixpkgs; 0.108 is latest available
+grype.version = "^0.108"
 cosign.pkg-path = "cosign"
 cosign.version = "^3"
 syft.pkg-path = "syft"
-# syft 1.42 not yet in nixpkgs; unpinned to get latest available
+syft.version = "^1.42"
 
 # Kubernetes / testing tools
 kubectl.pkg-path = "kubectl"
-kubectl.version = "^1"
+kubectl.version = "^1.35"
 kubectl.outputs = "all"
 kubernetes-helm.pkg-path = "kubernetes-helm"
 # helm 4 not yet in nixpkgs; unpinned to get latest available (v3.x)
@@ -56,8 +57,8 @@ kind.version = "^0.31"
 ctlptl.pkg-path = "ctlptl"
 ctlptl.version = "^0.9"
 tilt.pkg-path = "tilt"
-# tilt 0.37 not yet in nixpkgs; pinned to latest available (0.36.x)
-tilt.version = "^0.36"
+tilt.version = "^0.37"
+tilt.pkg-group = "tilt"
 chainsaw.pkg-path = "kyverno-chainsaw"
 chainsaw.version = "^0.2"
 kwok.pkg-path = "kwok"
