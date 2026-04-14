@@ -98,7 +98,7 @@ jobs:
           accelerator: h100
           platform: dynamo
 
-      # --- Snapshot and resource verification ---
+      # --- Snapshot and GPU validation ---
 
       - name: Snapshot and validate GPU
         uses: ./.github/actions/gpu-snapshot-validate
@@ -106,21 +106,6 @@ jobs:
           gpu_model: H100
           min_gpu_count: '1'
           cluster_name: ${{ env.KIND_CLUSTER_NAME }}
-
-      - name: Check expected resources exist
-        run: |
-          go run ./tests/chainsaw/ai-conformance/ \
-            --dir tests/chainsaw/ai-conformance/kind \
-            --file tests/chainsaw/ai-conformance/cluster/assert-crds.yaml \
-            --file tests/chainsaw/ai-conformance/cluster/assert-cert-manager.yaml \
-            --file tests/chainsaw/ai-conformance/cluster/assert-monitoring.yaml \
-            --file tests/chainsaw/ai-conformance/cluster/assert-kgateway.yaml \
-            --file tests/chainsaw/ai-conformance/cluster/assert-skyhook.yaml \
-            --file tests/chainsaw/ai-conformance/cluster/assert-dra-driver.yaml \
-            --file tests/chainsaw/ai-conformance/cluster/assert-kai-scheduler.yaml \
-            --file tests/chainsaw/ai-conformance/cluster/assert-dynamo.yaml \
-            --kubeconfig="${HOME}/.kube/config" \
-            --debug
 
       # --- Install Karpenter + KWOK early to give monitoring stack settle time ---
 
@@ -146,6 +131,21 @@ jobs:
           chainsaw test \
             --test-dir tests/chainsaw/ai-conformance/kind \
             --config tests/chainsaw/chainsaw-config.yaml
+
+      - name: Verify expected resources exist
+        run: |
+          go run ./tests/chainsaw/ai-conformance/ \
+            --dir tests/chainsaw/ai-conformance/kind \
+            --file tests/chainsaw/ai-conformance/cluster/assert-crds.yaml \
+            --file tests/chainsaw/ai-conformance/cluster/assert-cert-manager.yaml \
+            --file tests/chainsaw/ai-conformance/cluster/assert-monitoring.yaml \
+            --file tests/chainsaw/ai-conformance/cluster/assert-kgateway.yaml \
+            --file tests/chainsaw/ai-conformance/cluster/assert-skyhook.yaml \
+            --file tests/chainsaw/ai-conformance/cluster/assert-dra-driver.yaml \
+            --file tests/chainsaw/ai-conformance/cluster/assert-kai-scheduler.yaml \
+            --file tests/chainsaw/ai-conformance/cluster/assert-dynamo.yaml \
+            --kubeconfig="${HOME}/.kube/config" \
+            --debug
 
       # --- CNCF AI Conformance validation ---
       # Runs before Dynamo: the dra-support check needs to allocate a GPU via

@@ -99,7 +99,7 @@ jobs:
           accelerator: h100
           intent: training
 
-      # --- Snapshot and resource verification ---
+      # --- Snapshot and GPU validation ---
 
       - name: Snapshot and validate GPU
         uses: ./.github/actions/gpu-snapshot-validate
@@ -107,18 +107,6 @@ jobs:
           gpu_model: H100
           min_gpu_count: '2'
           cluster_name: ${{ env.KIND_CLUSTER_NAME }}
-
-      - name: Check expected resources exist
-        run: |
-          go run ./tests/chainsaw/ai-conformance/ \
-            --dir tests/chainsaw/ai-conformance/kind-training \
-            --file tests/chainsaw/ai-conformance/cluster/assert-cert-manager.yaml \
-            --file tests/chainsaw/ai-conformance/cluster/assert-monitoring.yaml \
-            --file tests/chainsaw/ai-conformance/cluster/assert-skyhook.yaml \
-            --file tests/chainsaw/ai-conformance/cluster/assert-dra-driver.yaml \
-            --file tests/chainsaw/ai-conformance/cluster/assert-kai-scheduler.yaml \
-            --kubeconfig="${HOME}/.kube/config" \
-            --debug
 
       # --- Install Karpenter + KWOK early to give monitoring stack settle time ---
 
@@ -144,6 +132,18 @@ jobs:
           chainsaw test \
             --test-dir tests/chainsaw/ai-conformance/kind-training \
             --config tests/chainsaw/chainsaw-config.yaml
+
+      - name: Verify expected resources exist
+        run: |
+          go run ./tests/chainsaw/ai-conformance/ \
+            --dir tests/chainsaw/ai-conformance/kind-training \
+            --file tests/chainsaw/ai-conformance/cluster/assert-cert-manager.yaml \
+            --file tests/chainsaw/ai-conformance/cluster/assert-monitoring.yaml \
+            --file tests/chainsaw/ai-conformance/cluster/assert-skyhook.yaml \
+            --file tests/chainsaw/ai-conformance/cluster/assert-dra-driver.yaml \
+            --file tests/chainsaw/ai-conformance/cluster/assert-kai-scheduler.yaml \
+            --kubeconfig="${HOME}/.kube/config" \
+            --debug
 
       # --- CNCF AI Conformance validation ---
       # Runs last to ensure the DCGM → Prometheus → adapter pipeline
